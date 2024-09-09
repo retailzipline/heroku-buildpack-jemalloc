@@ -64,13 +64,32 @@ restart disabling jemalloc.
 heroku config:set JEMALLOC_ENABLED=false
 ```
 
+### MALLOC_CONF
+
+While jemalloc's default configuration works well in most situations it does
+provide a set of options to fine tune performance and memory usage. You can
+find a full list of options [in the jemalloc documentation](https://github.com/jemalloc/jemalloc/blob/dev/TUNING.md).
+
+
+#### Rails
+
+Many Rails applications benefit from a common set of options and the below was
+added as the default with dockerfile-rails as of Rails 7.1. While this is a
+good default for most Rails apps it prefers performance over minimal memory
+usage. For more details on each option and other tested configs with different
+trade offs there is more info [in this gist](https://gist.github.com/jjb/9ff0d3f622c8bbe904fe7a82e35152fc#malloc_conf-options).
+
+```
+heroku config:set MALLOC_CONF=dirty_decay_ms:1000,narenas:2,background_thread:true
+```
+
 ### JEMALLOC_VERSION
 
 Set this to select or pin to a specific version of jemalloc. The default is to
 use the latest stable version if this is not set. You will receive an error
 mentioning tar if the version does not exist.
 
-**Default**: `5.2.1`
+**Default**: `5.3.0`
 
 **note:** This setting is only used during slug compilation. Changing it will
 require a code change to be deployed in order to take affect.
@@ -99,28 +118,7 @@ heroku config:set JEMALLOC_VERSION=3.6.0
 The complete and most up to date list of supported versions and stacks is
 available on the [releases page.](https://github.com/gaffneyc/heroku-buildpack-jemalloc/releases)
 
-## Building
+## Development
 
-This uses Docker to build against Heroku
-[stack-image](https://github.com/heroku/stack-images)-like images.
-
-```console
-make VERSION=5.1.0
-```
-
-Artifacts will be dropped in `dist/` based on Heroku stack and jemalloc version.
-
-### Deploying New Versions
-
-- `make VERSION=X.Y.Z`
-- `open dist`
-- Go to [releases](https://github.com/gaffneyc/heroku-buildpack-jemalloc/releases)
-- Edit the release corresponding to each heroku Stack
-- Drag and drop the new build to attach
-
-### Creating a New Stack
-- Go to [releases](https://github.com/gaffneyc/heroku-buildpack-jemalloc/releases)
-- Click "Draft a new release"
-- Tag is the name of the Stack (e.g. `heroku-18`)
-- Target is `release-master`
-- Title is `Builds for the [stack] stack`
+Run `make console` to start up a shell in a test build environment that mimic's
+Heroku's build phase.
